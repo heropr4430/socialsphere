@@ -2,6 +2,7 @@ package com.socialsphere.backend.controllers;
 
 import com.socialsphere.backend.dtos.request.LoginRequest;
 import com.socialsphere.backend.dtos.request.RegisterRequest;
+import com.socialsphere.backend.dtos.response.AuthResponse;
 import com.socialsphere.backend.dtos.response.UserResponse;
 import com.socialsphere.backend.mapper.UserMapper;
 import com.socialsphere.backend.models.User;
@@ -28,9 +29,14 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest request) {
-        boolean success = userService.login(request);
-        return success ? "Login success" : "Login failed";
+    public AuthResponse login(@RequestBody LoginRequest request) {
+        String token = null;
+        try {
+            token = userService.login(request);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return new AuthResponse(token);
     }
 
 }

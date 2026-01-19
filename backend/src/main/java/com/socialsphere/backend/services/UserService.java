@@ -4,6 +4,7 @@ import com.socialsphere.backend.dtos.request.LoginRequest;
 import com.socialsphere.backend.dtos.request.RegisterRequest;
 import com.socialsphere.backend.models.User;
 import com.socialsphere.backend.repositories.UserRepository;
+import com.socialsphere.backend.security.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -11,11 +12,14 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     public UserService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder,
+                       JwtUtil jwtUtil) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
     }
 
     // Đăng ký
@@ -38,13 +42,22 @@ public class UserService {
     }
 
     // Login
-    public boolean login(LoginRequest request) {
+    public String login(LoginRequest request) {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        return passwordEncoder.matches(
+        if (!passwordEncoder.matches(
                 request.getPassword(),
                 user.getPassword()
-        );
+        )) {
+            throw new RuntimeException("Invalid password");
+        }
+
+        try {
+            return jwtUtil.generateToken(user);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }

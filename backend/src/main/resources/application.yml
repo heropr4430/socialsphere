@@ -11,6 +11,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
-
 server:
   port: 8080
+jwt:
+  expiration: 2592000 #30 days = 30*24*60*60
+  secretKey: rCt8mY9OBuXF7SV7bmbOT0c1j26ShdYj0MBYD6+0bOQ=
