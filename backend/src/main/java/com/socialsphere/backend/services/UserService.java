@@ -2,25 +2,24 @@ package com.socialsphere.backend.services;
 
 import com.socialsphere.backend.dtos.request.LoginRequest;
 import com.socialsphere.backend.dtos.request.RegisterRequest;
+import com.socialsphere.backend.dtos.response.UserResponse;
+import com.socialsphere.backend.mapper.UserMapper;
 import com.socialsphere.backend.models.User;
 import com.socialsphere.backend.repositories.UserRepository;
-import com.socialsphere.backend.security.JwtUtil;
+import com.socialsphere.backend.security.jwt.JwtProvider;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+@RequiredArgsConstructor
 @Service
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
-
-    public UserService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder,
-                       JwtUtil jwtUtil) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtUtil = jwtUtil;
-    }
+    private final JwtProvider jwtProvider;
+    private final AuthenticationManager authenticationManager;
 
     // Đăng ký
     public User register(RegisterRequest request) {
@@ -46,18 +45,32 @@ public class UserService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (!passwordEncoder.matches(
-                request.getPassword(),
-                user.getPassword()
-        )) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid password");
         }
 
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                request.getUsername(), request.getPassword(),
+                user.getAuthorities()
+        );
         try {
-            return jwtUtil.generateToken(user);
+            authenticationManager.authenticate(authenticationToken);
+            return jwtProvider.generateToken(user);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
     }
+
+    public User getUserById(Long userId){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));;
+        return user;
+    }
+
+    public UserResponse getUserByUsername(String username){
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));;
+        return UserMapper.toResponse(user);
+    }
+
 }

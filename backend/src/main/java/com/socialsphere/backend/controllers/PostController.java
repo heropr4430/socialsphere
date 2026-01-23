@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-    @RequestMapping("/api/posts")
+    @RequestMapping("/api/v1/posts")
 @AllArgsConstructor
 public class PostController {
 
