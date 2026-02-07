@@ -5,7 +5,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,37 +35,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain)
             throws ServletException, IOException {
-        try {
-            if(isBypassToken(request)) {
-                filterChain.doFilter(request, response); //enable bypass
-                return;
-            }
-            final String authHeader = request.getHeader("Authorization");
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-                return;
-            }
-            final String token = authHeader.substring(7);
-            final String username = jwtProvider.extractUsername(token);
-            if (username != null
-                    && SecurityContextHolder.getContext().getAuthentication() == null) {
-                User userDetails = (User) userDetailsService.loadUserByUsername(username);
-                if(jwtProvider.validateToken(token, userDetails)) {
-                    UsernamePasswordAuthenticationToken authenticationToken =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities()
-                            );
-                    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                }
-            }
+        if(isBypassToken(request)) {
             filterChain.doFilter(request, response); //enable bypass
-            logger.info("JWT filter finished");
-        }catch (Exception e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+            return;
         }
+        final String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+            return;
+        }
+        final String token = authHeader.substring(7);
+        final String username = jwtProvider.extractUsername(token);
+        if (username != null
+                && SecurityContextHolder.getContext().getAuthentication() == null) {
+            User userDetails = (User) userDetailsService.loadUserByUsername(username);
+            if(jwtProvider.validateToken(token, userDetails)) {
+                UsernamePasswordAuthenticationToken authenticationToken =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
+                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+
+            }
+        }
+        filterChain.doFilter(request, response); //enable bypass
+        logger.info("JWT filter finished");
+
 
     }
     private boolean isBypassToken(@NonNull  HttpServletRequest request) {

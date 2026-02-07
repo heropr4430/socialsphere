@@ -1,5 +1,7 @@
 package com.socialsphere.backend.models;
 
+import com.socialsphere.backend.utils.constant.PostStatus;
+import com.socialsphere.backend.utils.constant.PostVisibility;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,14 +20,26 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(columnDefinition = "TEXT")
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User author;
+
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private int likeCount;
+    private int commentCount;
+    private int shareCount;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Enumerated(EnumType.STRING)
+    private PostVisibility visibility;
+
+    @Enumerated(EnumType.STRING)
+    private PostStatus status;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
 
 

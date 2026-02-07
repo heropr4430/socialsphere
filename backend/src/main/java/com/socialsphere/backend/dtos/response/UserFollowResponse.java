@@ -1,6 +1,5 @@
 package com.socialsphere.backend.dtos.response;
 
-import com.socialsphere.backend.models.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +9,9 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @Setter
-public class UserResponse {
+public class UserFollowResponse {
     private Long id;
-    private String username;
+    private UserResponse follower;
+    private UserResponse following;
+
 }

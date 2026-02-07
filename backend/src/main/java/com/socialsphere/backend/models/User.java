@@ -34,6 +34,8 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    private String avatar;
+
     private String fullName;
 
     private LocalDateTime createdAt = LocalDateTime.now();

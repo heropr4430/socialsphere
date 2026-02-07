@@ -1,45 +1,84 @@
 package com.socialsphere.backend.controllers;
 
-import com.socialsphere.backend.dtos.PostDTO;
+import com.socialsphere.backend.dtos.request.CreatePostRequest;
+import com.socialsphere.backend.dtos.response.PostDetailResponse;
+import com.socialsphere.backend.dtos.response.PostResponse;
+import com.socialsphere.backend.mapper.FollowMapper;
+import com.socialsphere.backend.mapper.PostMapper;
 import com.socialsphere.backend.models.Post;
 import com.socialsphere.backend.models.User;
 import com.socialsphere.backend.repositories.PostRepository;
 import com.socialsphere.backend.repositories.UserRepository;
+import com.socialsphere.backend.security.CurrentUserService;
+import com.socialsphere.backend.services.PostLikeService;
+import com.socialsphere.backend.services.PostService;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-    @RequestMapping("/api/v1/posts")
+@RequestMapping("/api/v1/posts")
 @AllArgsConstructor
 public class PostController {
 
-    private final PostRepository postRepository;
-    private final UserRepository userRepository;
+    private final CurrentUserService currentUserService;
+    private final PostService postService;
+    private final PostLikeService postLikeService;
+
 
     @PostMapping
-    public ResponseEntity<?> createPost(@RequestBody PostDTO postDTO) {
+    public ResponseEntity<?> createPost(@RequestBody CreatePostRequest createPostRequest) {
 
-        User user = userRepository.findById(postDTO.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User curUser = currentUserService.getCurrentUser();
 
-        Post post = new Post();
-        post.setContent(postDTO.getContent());
-        post.setUser(user);
+        Post savedPost = postService.createPost(createPostRequest, curUser);
 
-        Post savedPost = postRepository.save(post);
-
-        return ResponseEntity.ok(savedPost);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(PostMapper.toResponse(savedPost));
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Post>> getPostsByUser(@PathVariable Long userId) {
+    public ResponseEntity<List<PostResponse>> getPostsByUser(@PathVariable Long userId) {
 
-        List<Post> posts = postRepository
-                .findByUserIdOrderByCreatedAtDesc(userId);
+        List<Post> posts = postService.getPostsByUserId(userId);
 
-        return ResponseEntity.ok(posts);
+        return ResponseEntity.ok(posts.stream()
+                .map(PostMapper::toResponse)
+                .toList());
+    }
+
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostDetailResponse> getPost(@PathVariable Long postId) {
+        User curUser = currentUserService.getCurrentUser();
+
+        PostDetailResponse postDetail =
+                postService.getPostDetail(postId,curUser);
+        return ResponseEntity.ok(postDetail);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<List<PostResponse>> getMyPosts() {
+
+        User curUser = currentUserService.getCurrentUser();
+        List<Post> posts = postService.getPostsByUserId(curUser.getId());
+
+        return ResponseEntity.ok(posts.stream()
+                .map(PostMapper::toResponse)
+                .toList());
+    }
+
+    @PostMapping("/{postId}/like")
+    public String likePost(@PathVariable Long postId){
+        User curUser = currentUserService.getCurrentUser();
+        boolean isLikePost = postLikeService.isLikePost(postId,curUser);
+        if(isLikePost){
+            return  postLikeService.unlikePost(postId,curUser);
+        }
+        else {
+            return postLikeService.likePost(postId,curUser);
+        }
     }
 }

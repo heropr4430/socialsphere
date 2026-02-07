@@ -1,18 +1,16 @@
 package com.socialsphere.backend.controllers;
 
-import com.socialsphere.backend.dtos.UserDTO;
 import com.socialsphere.backend.dtos.request.RegisterRequest;
-import com.socialsphere.backend.dtos.response.UserResponse;
 import com.socialsphere.backend.mapper.UserMapper;
 import com.socialsphere.backend.models.User;
-import com.socialsphere.backend.repositories.UserRepository;
 import com.socialsphere.backend.services.UserService;
 import com.socialsphere.backend.utils.SecurityUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -39,9 +37,10 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public UserResponse me() {
+    public ResponseEntity<?> me() {
         String username = SecurityUtils.getCurrentUsername();
-        return userService.getUserByUsername(username);
+        return ResponseEntity.ok(
+                UserMapper.toResponse(userService.getUserByUsername(username)));
     }
 
 }

@@ -1,11 +1,17 @@
 package com.socialsphere.backend.models;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "comments")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Comment {
 
     @Id

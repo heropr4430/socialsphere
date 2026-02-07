@@ -2,8 +2,6 @@ package com.socialsphere.backend.services;
 
 import com.socialsphere.backend.dtos.request.LoginRequest;
 import com.socialsphere.backend.dtos.request.RegisterRequest;
-import com.socialsphere.backend.dtos.response.UserResponse;
-import com.socialsphere.backend.mapper.UserMapper;
 import com.socialsphere.backend.models.User;
 import com.socialsphere.backend.repositories.UserRepository;
 import com.socialsphere.backend.security.jwt.JwtProvider;
@@ -67,10 +65,10 @@ public class UserService {
         return user;
     }
 
-    public UserResponse getUserByUsername(String username){
+    public User getUserByUsername(String username){
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));;
-        return UserMapper.toResponse(user);
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return user;
     }
 
 }

@@ -6,32 +6,27 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "follows",
-        uniqueConstraints = @UniqueConstraint(
-                columnNames = {"follower_id", "following_id"}
-        )
-)
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class Follow {
-
+@Table(
+        name = "post_likes",
+        uniqueConstraints = @UniqueConstraint(
+                columnNames = {"user_id", "post_id"}
+        )
+)
+public class PostLike {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // User đi follow
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "follower_id", nullable = false)
-    private User follower;
+    private User user;
 
-    // User được follow
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "following_id", nullable = false)
-    private User following;
+    private Post post;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -41,5 +36,3 @@ public class Follow {
         this.createdAt = LocalDateTime.now();
     }
 }
-
-
